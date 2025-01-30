@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"math"
 	"receipt-processor/models"
 	"regexp"
@@ -17,6 +18,48 @@ func NewReceiptService() *ReceiptService {
 	return &ReceiptService{
 		Receipts: make(map[string]models.Receipt),
 	}
+}
+
+func (s *ReceiptService) ValidateReceipt(receipt models.Receipt) error {
+	// Validate retailer
+	retailerPattern := regexp.MustCompile(`^[\w\s\-&]+$`)
+	if !retailerPattern.MatchString(receipt.Retailer) {
+		return fmt.Errorf("invalid retailer format")
+	}
+
+	// Validate purchaseDate
+	if _, err := time.Parse("2006-01-02", receipt.PurchaseDate); err != nil {
+		return fmt.Errorf("invalid date format")
+	}
+
+	// Validate purchaseTime
+	if _, err := time.Parse("15:04", receipt.PurchaseTime); err != nil {
+		return fmt.Errorf("invalid time format")
+	}
+
+	// Validate total
+	totalPattern := regexp.MustCompile(`^\d+\.\d{2}$`)
+	if !totalPattern.MatchString(receipt.Total) {
+		return fmt.Errorf("invalid total format")
+	}
+
+	// Validate items
+	if len(receipt.Items) < 1 {
+		return fmt.Errorf("at least one item is required")
+	}
+
+	// Validate each item
+	for _, item := range receipt.Items {
+		if !totalPattern.MatchString(item.Price) {
+			return fmt.Errorf("invalid item price format")
+		}
+		descPattern := regexp.MustCompile(`^[\w\s\-]+$`)
+		if !descPattern.MatchString(item.ShortDescription) {
+			return fmt.Errorf("invalid item description format")
+		}
+	}
+
+	return nil
 }
 
 func (s *ReceiptService) CalculatePoints(receipt models.Receipt) int {
