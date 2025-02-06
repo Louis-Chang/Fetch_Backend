@@ -92,13 +92,13 @@ func (s *ReceiptService) CalculatePoints(receipt models.Receipt) int {
 		}
 	}
 
-	// Rule 7: Odd day
+	// Rule 6: Odd day
 	purchaseDate, _ := time.Parse("2006-01-02", receipt.PurchaseDate)
 	if purchaseDate.Day()%2 == 1 {
 		points += 6
 	}
 
-	// Rule 8: Time between 2:00 and 4:00 PM
+	// Rule 7: Time between 2:00 and 4:00 PM
 	purchaseTime, _ := time.Parse("15:04", receipt.PurchaseTime)
 	hour := purchaseTime.Hour()
 	if hour >= 14 && hour < 16 {
